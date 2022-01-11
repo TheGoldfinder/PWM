@@ -50,10 +50,14 @@ class LogIn(Tk):
 
     # Check the Password field if all is right
     def checkPasswordField(self):
+        # get input from text field
         passwordFieldOutput = self.textInput.get("1.0", 'end-1c')
+
+        # get rid of spaces and enter
         passwordFieldOutput = passwordFieldOutput.replace(" ", "")
         passwordFieldOutput = passwordFieldOutput.replace("\n", "")
 
+        # changes the text in the input field to a valid password
         self.textInput.delete(1.0, "end")
         self.textInput.insert(1.0, passwordFieldOutput)
 
@@ -61,7 +65,7 @@ class LogIn(Tk):
 
     # Log in check
     def logIn(self):
-        fileName = "LogIn.txt"
+        fileName = "login.txt"
         self.textInput.config(state=DISABLED)
         self.checkPasswordField()
 
@@ -120,8 +124,6 @@ class App(Tk):
         self.geometry("300x400")
         self.title("PWM Password Manager")
         self.resizable(False, False)
-
-        # self.withdraw()
 
         self.btnPassword = Button(
             self, text="New Password", width=14, height=3, command=self.generatePassword)

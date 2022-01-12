@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Path
+import json
 
 app = FastAPI()
 
@@ -9,5 +10,7 @@ def home():
 
 
 @app.get("/login")
-def login():
-    return {"loggingIn": False}
+def login(userName: str, password: str):
+    with open("users.txt", "r") as file:
+        t = file.readlines()
+    return userName + " " + password

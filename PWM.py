@@ -87,8 +87,9 @@ class LogIn(Tk):
         userNameFieldOutput = self.userName.get("1.0", 'end-1c')
         pwFieldOutput = self.passwordBox.get("1.0", 'end-1c')
 
-        response = requests.get("http://127.0.0.1:8000/")
-        print(response)
+        response = requests.get(
+            f"http://127.0.0.1:8000/login?userName={userNameFieldOutput}&password={pwFieldOutput}")
+        print(response.text)
 
         # if pwFieldOutput != "" and len(pwFieldOutput) >= 12:
         # if not os.path.isfile(fileName):

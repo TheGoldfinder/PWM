@@ -2,7 +2,7 @@ from tkinter import *
 import cryptocode
 import requests
 import json
-import os
+
 
 uppercaseLetters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
                     "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "ß"]
@@ -31,13 +31,13 @@ class LogIn(Tk):
         self.title("PWM LogIn")
         self.resizable(False, False)
 
-        self.labelInfo = Label(self, text="User Name")
+        self.labelInfo = Label(self, text="E-mail")
         self.labelInfo.config(font=("Arial", 12))
-        self.labelInfo.place(relx=0.32, rely=0.19, anchor="center")
+        self.labelInfo.place(relx=0.28, rely=0.19, anchor="center")
 
-        self.userName = Text(self, width=20, height=1)
-        self.userName.config(font=("Arial", 12), wrap="none")
-        self.userName.place(relx=0.5, rely=0.25, anchor="center")
+        self.email = Text(self, width=20, height=1)
+        self.email.config(font=("Arial", 12), wrap="none")
+        self.email.place(relx=0.5, rely=0.25, anchor="center")
 
         self.labelInfo = Label(self, text="Password")
         self.labelInfo.config(font=("Arial", 12))
@@ -64,32 +64,40 @@ class LogIn(Tk):
     def checkPasswordField(self):
         # get input from text field
         passwordFieldOutput = self.passwordBox.get("1.0", 'end-1c')
-        userNameFieldOutput = self.userName.get("1.0", 'end-1c')
+        emailFieldOutput = self.email.get("1.0", 'end-1c')
 
         # get rid of spaces and enter
         passwordFieldOutput = passwordFieldOutput.replace(" ", "")
         passwordFieldOutput = passwordFieldOutput.replace("\n", "")
-        userNameFieldOutput = userNameFieldOutput.replace(" ", "")
-        userNameFieldOutput = userNameFieldOutput.replace("\n", "")
+        emailFieldOutput = emailFieldOutput.replace(" ", "")
+        emailFieldOutput = emailFieldOutput.replace("\n", "")
 
         # changes the text in the input field to a valid password
         self.passwordBox.delete(1.0, "end")
-        self.userName.delete(1.0, "end")
+        self.email.delete(1.0, "end")
         self.passwordBox.insert(1.0, passwordFieldOutput)
-        self.userName.insert(1.0, userNameFieldOutput)
+        self.email.insert(1.0, emailFieldOutput)
 
     # Log in check
     def logIn(self):
-        #fileName = "login.txt"
+        self.email.config(state=DISABLED)
         self.passwordBox.config(state=DISABLED)
         self.checkPasswordField()
 
-        userNameFieldOutput = self.userName.get("1.0", 'end-1c')
+        emailFieldOutput = self.email.get("1.0", 'end-1c')
         pwFieldOutput = self.passwordBox.get("1.0", 'end-1c')
 
-        response = requests.get(
-            f"http://127.0.0.1:8000/login?userName={userNameFieldOutput}&password={pwFieldOutput}")
-        print(response.text)
+        if "@" not in emailFieldOutput:
+            self.labelError.config(text="No e-mail recognized")
+            return
+
+        keyRequestResponse = requests.get("http://127.0.0.1:8000/key")
+        keyRequestResponse = json.loads(keyRequestResponse.text)
+        key = keyRequestResponse["key"]
+
+        loginResponse = requests.get(
+            f"http://127.0.0.1:8000/login?email={cryptocode.encrypt(emailFieldOutput, key)}&password={cryptocode.encrypt(pwFieldOutput, key)}")
+        print(loginResponse.text)
 
         # if pwFieldOutput != "" and len(pwFieldOutput) >= 12:
         # if not os.path.isfile(fileName):

@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from tkinter import *
 import cryptocode
 import requests
@@ -22,6 +23,8 @@ specialCharacter = ["!", "\"", "/", "\'", "#", "+", "*", "~", ",", ".", "-", "_"
 key = ""
 
 switch = 0
+
+apiAdress = "http://127.0.0.1:8000"
 
 
 class LogIn(Tk):
@@ -80,6 +83,8 @@ class LogIn(Tk):
 
     # Log in check
     def logIn(self):
+        global key
+
         self.email.config(state=DISABLED)
         self.passwordBox.config(state=DISABLED)
         self.checkPasswordField()
@@ -87,16 +92,40 @@ class LogIn(Tk):
         emailFieldOutput = self.email.get("1.0", 'end-1c')
         pwFieldOutput = self.passwordBox.get("1.0", 'end-1c')
 
-        if "@" not in emailFieldOutput:
-            self.labelError.config(text="No e-mail recognized")
+        areConnected = False
+        jsonConnectedList = ""
+        try:
+            areConnected = requests.get(apiAdress + "/")
+            jsonConnectedList = json.loads(areConnected.text)
+        except:
+            areConnected = False
+            jsonTemporarily = {"connected": False}
+            jsonTemporarily = json.dumps(jsonTemporarily)
+            jsonConnectedList = json.loads(jsonTemporarily)
+            print("No api request could be send")
+
+        if not jsonConnectedList["connected"]:
+            self.labelError.config(
+                text="No internet connection\nor our servers are down", foreground="red")
             return
 
-        keyRequestResponse = requests.get("http://127.0.0.1:8000/key")
+        if "@" not in emailFieldOutput:
+            self.labelError.config(
+                text="No e-mail recognized", foreground="red")
+            return
+
+        try:
+            keyRequestResponse = requests.get(apiAdress + "/getKey")
+        except:
+            print("No api request kould be sendNo request kould be send")
         keyRequestResponse = json.loads(keyRequestResponse.text)
         key = keyRequestResponse["key"]
 
+        emailFieldOutput = cryptocode.encrypt(emailFieldOutput, key)
+        pwFieldOutput = cryptocode.encrypt(pwFieldOutput, key)
+
         loginResponse = requests.get(
-            f"http://127.0.0.1:8000/login?email={cryptocode.encrypt(emailFieldOutput, key)}&password={cryptocode.encrypt(pwFieldOutput, key)}")
+            f"{apiAdress}/login?email={emailFieldOutput}&password={pwFieldOutput}")
         print(loginResponse.text)
 
         # if pwFieldOutput != "" and len(pwFieldOutput) >= 12:

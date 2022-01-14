@@ -14,15 +14,14 @@ def home():
     return {"connected": True}
 
 
-@app.get("/key")
-def key():
-    global key
-    global oldepoch
+@app.get("/getKey")
+def getKey():
+    global key, oldepoch
 
     if key == "":
         key = Fernet.generate_key()
         oldepoch = time.time()
-    else:
+    elif key != "":
         timeVar = time.time() - oldepoch
         if timeVar >= 8:
             key = Fernet.generate_key()
@@ -32,6 +31,12 @@ def key():
     return {"key": key}
 
 
+@app.get("/testKey")
+def testKey():
+    global key
+    return key
+
+
 @app.get("/login")
 def login(email: str, password: str):
     global key
@@ -39,4 +44,4 @@ def login(email: str, password: str):
     emailDecrypted = cryptocode.decrypt(email, key)
     passwordDecrypted = cryptocode.decrypt(password, key)
 
-    return str(emailDecrypted) + " " + str(passwordDecrypted)
+    return

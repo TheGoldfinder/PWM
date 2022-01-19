@@ -1,38 +1,30 @@
 from asyncio.windows_events import NULL
 from tkinter import *
+import tkinter
+from typing import final
 import cryptocode
 import requests
 import json
 
+email = ""
+password = ""
 
-uppercaseLetters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
-                    "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "ß"]
-
-lowercaseLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
-                    'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', "ß"]
-
-uppercaseUmlaut = ["Ä", "Ö", "Ü"]
-
-lowercaseUmlaut = ["ä", "ö", "ü"]
-
-numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-
-specialCharacter = ["!", "\"", "/", "\'", "#", "+", "*", "~", ",", ".", "-", "_", "´", "`",
-                    "?", "=", "}", ")", "]", "(", "[", "{", "&", "%", "$", "§", "^", "°", "<", ">", "|", "@", "€"]
-
+apiAdress = "http://127.0.0.1:8000"
 key = ""
 
 switch = 0
 
-apiAdress = "http://127.0.0.1:8000"
-
 
 class LogIn(Tk):
+    register = ""
+
     def __init__(self):
         super().__init__()
         self.geometry("300x400")
         self.title("PWM LogIn")
         self.resizable(False, False)
+
+        self.register = tkinter.BooleanVar()
 
         self.labelInfo = Label(self, text="E-mail")
         self.labelInfo.config(font=("Arial", 12))
@@ -63,6 +55,11 @@ class LogIn(Tk):
         self.labelError.config(font=("Arial", 12))
         self.labelError.place(relx=0.5, rely=0.8, anchor="center")
 
+        self.registerCheckBox = Checkbutton(
+            self, text="Register", variable=self.register)
+        self.registerCheckBox.config(font=("Arial", 12))
+        self.registerCheckBox.place(relx=0.5, rely=0.95, anchor="s")
+
     # Check the Password field if all is right
     def checkPasswordField(self):
         # get input from text field
@@ -83,7 +80,7 @@ class LogIn(Tk):
 
     # Log in check
     def logIn(self):
-        global key
+        global key, email, password
 
         self.email.config(state=DISABLED)
         self.passwordBox.config(state=DISABLED)
@@ -117,42 +114,30 @@ class LogIn(Tk):
         try:
             keyRequestResponse = requests.get(apiAdress + "/getKey")
         except:
-            print("No api request kould be sendNo request kould be send")
+            print("No api request kould be send No request kould be send")
         keyRequestResponse = json.loads(keyRequestResponse.text)
         key = keyRequestResponse["key"]
 
         emailFieldOutput = cryptocode.encrypt(emailFieldOutput, key)
         pwFieldOutput = cryptocode.encrypt(pwFieldOutput, key)
 
-        loginResponse = requests.get(
-            f"{apiAdress}/login?email={emailFieldOutput}&password={pwFieldOutput}")
-        print(loginResponse.text)
+        if self.register:
+            self.registerNewUser(emailFieldOutput, pwFieldOutput, key)
+            return
 
-        # if pwFieldOutput != "" and len(pwFieldOutput) >= 12:
-        # if not os.path.isfile(fileName):
-        # with open(fileName, "x") as file:
-        #file.write(self.encodePW(pwFieldOutput, pwFieldOutput))
-        # self.switchWindows()
+        try:
+            loginResponse = requests.get(
+                f"{apiAdress}/login?email={emailFieldOutput}&password={pwFieldOutput}")
+        finally:
+            print(loginResponse.text)
 
-        # elif os.path.isfile(fileName):
-        # with open(fileName, "r") as file:
-        #readIn = file.read()
-        #output = self.decodePW(readIn, pwFieldOutput)
-
-        # if output[0] == pwFieldOutput and output[1] == True:
-        # self.switchWindows()
-
-        # else:
-        # self.labelError.config(
-        # text="!!!False Password!!!", foreground="red")
-        # self.passwordBox.config(state=NORMAL)
-
-        # else:
-        # self.labelError.config(
-        # text="!!!Your Password is not long enough\nor it is emty!!!", foreground="red")
-        # self.passwordBox.config(state=NORMAL)
-
-    # Switch window
+    def registerNewUser(email, password, key):
+        try:
+            response = requests.get(
+                f"{apiAdress}/register?email={email}&password={password}")
+        finally:
+            print
+        return
 
     def switchWindows(self):
         global switch

@@ -24,7 +24,7 @@ class LogIn(Tk):
         self.title("PWM LogIn")
         self.resizable(False, False)
 
-        self.register = tkinter.BooleanVar()
+        self.register = tkinter.IntVar()
 
         self.labelInfo = Label(self, text="E-mail")
         self.labelInfo.config(font=("Arial", 12))
@@ -82,50 +82,62 @@ class LogIn(Tk):
     def logIn(self):
         global key, email, password
 
+        # Disable textboxes
         self.email.config(state=DISABLED)
         self.passwordBox.config(state=DISABLED)
         self.checkPasswordField()
 
+        # get text from text fields
         emailFieldOutput = self.email.get("1.0", 'end-1c')
         pwFieldOutput = self.passwordBox.get("1.0", 'end-1c')
 
         areConnected = False
         jsonConnectedList = ""
+        # check if connected
         try:
+            # send api request to home
             areConnected = requests.get(apiAdress + "/")
             jsonConnectedList = json.loads(areConnected.text)
         except:
-            areConnected = False
+            # if offline
             jsonTemporarily = {"connected": False}
             jsonTemporarily = json.dumps(jsonTemporarily)
             jsonConnectedList = json.loads(jsonTemporarily)
             print("No api request could be send")
 
+        # if not connected
         if not jsonConnectedList["connected"]:
             self.labelError.config(
                 text="No internet connection\nor our servers are down", foreground="red")
             return
 
+        # check if @ in email
         if "@" not in emailFieldOutput:
             self.labelError.config(
                 text="No e-mail recognized", foreground="red")
             return
 
         try:
+            # get key from api
             keyRequestResponse = requests.get(apiAdress + "/getKey")
+            print(keyRequestResponse.text)
         except:
-            print("No api request kould be send No request kould be send")
+            print("No api request could be send No request could be send")
+        # set key
         keyRequestResponse = json.loads(keyRequestResponse.text)
         key = keyRequestResponse["key"]
 
+        # encrypt email and password
         emailFieldOutput = cryptocode.encrypt(emailFieldOutput, key)
         pwFieldOutput = cryptocode.encrypt(pwFieldOutput, key)
 
-        if self.register:
+        # if want to register
+        if self.register == 1:
             self.registerNewUser(emailFieldOutput, pwFieldOutput, key)
             return
 
         try:
+            # request login send encrypted email and password
             loginResponse = requests.get(
                 f"{apiAdress}/login?email={emailFieldOutput}&password={pwFieldOutput}")
         finally:
@@ -133,6 +145,7 @@ class LogIn(Tk):
 
     def registerNewUser(email, password, key):
         try:
+            # request register send encrypted email and password
             response = requests.get(
                 f"{apiAdress}/register?email={email}&password={password}")
         finally:

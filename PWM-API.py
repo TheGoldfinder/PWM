@@ -43,6 +43,13 @@ def getKey():
             oldepoch = time.time()
         elif timeVar > 3 and timeVar < 8:
             oldepoch = time.time()
+
+    convertedKey = ""
+    for i in key:
+        if i != "&":
+            convertedKey = str(key) + str(i)
+    key = convertedKey
+
     return {"key": key, "timestamp": time.time()}
 
 
@@ -56,7 +63,7 @@ def login(email: str, password: str):
     emailDecrypted = cryptocode.decrypt(email, key)
     passwordDecrypted = cryptocode.decrypt(password, key)
 
-    return
+    return str(emailDecrypted) + " " + str(passwordDecrypted)
 
 
 @app.get("/register")

@@ -1,6 +1,4 @@
 from fastapi import FastAPI
-from cryptography.fernet import Fernet
-import cryptocode
 import json
 import time
 
@@ -20,8 +18,9 @@ specialCharacter = ["!", "\"", "/", "\'", "#", "+", "*", "~", ",", ".", "-", "_"
                     "?", "=", "}", ")", "]", "(", "[", "{", "&", "%", "$", "§", "^", "°", "<", ">", "|", "@", "€"]
 
 app = FastAPI()
-key = ""
 oldepoch = 0
+callsPerMinute = 0
+maxCallsPerMin = 120
 
 
 @app.get("/")
@@ -29,41 +28,9 @@ def home():
     return {"connected": True}
 
 
-@app.get("/getKey")
-def getKey():
-    global key, oldepoch
-
-    if key == "":
-        key = Fernet.generate_key()
-        oldepoch = time.time()
-    elif key != "":
-        timeVar = time.time() - oldepoch
-        if timeVar >= 8:
-            key = Fernet.generate_key()
-            oldepoch = time.time()
-        elif timeVar > 3 and timeVar < 8:
-            oldepoch = time.time()
-
-    convertedKey = ""
-    for i in key:
-        if i != "&":
-            convertedKey = str(key) + str(i)
-    key = convertedKey
-
-    return {"key": key, "timestamp": time.time()}
-
-
-@app.get("/testKey")
-def testKey():
-    return {"key": key, "timestamp": time.time()}
-
-
 @app.get("/login")
 def login(email: str, password: str):
-    emailDecrypted = cryptocode.decrypt(email, key)
-    passwordDecrypted = cryptocode.decrypt(password, key)
-
-    return str(emailDecrypted) + " " + str(passwordDecrypted)
+    return str(email) + " " + str(password)
 
 
 @app.get("/register")
@@ -71,4 +38,3 @@ def register(email: str, password: str):
     return
 
 
-getKey()

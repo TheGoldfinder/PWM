@@ -1,8 +1,5 @@
-from asyncio.windows_events import NULL
 from tkinter import *
 import tkinter
-from typing import final
-import cryptocode
 import requests
 import json
 
@@ -10,7 +7,6 @@ email = ""
 password = ""
 
 apiAdress = "http://127.0.0.1:8000"
-key = ""
 
 switch = 0
 
@@ -80,7 +76,7 @@ class LogIn(Tk):
 
     # Log in check
     def logIn(self):
-        global key, email, password
+        global email, password
 
         # Disable textboxes
         self.email.config(state=DISABLED)
@@ -117,23 +113,9 @@ class LogIn(Tk):
                 text="No e-mail recognized", foreground="red")
             return
 
-        try:
-            # get key from api
-            keyRequestResponse = requests.get(apiAdress + "/getKey")
-            print(keyRequestResponse.text)
-        except:
-            print("No api request could be send No request could be send")
-        # set key
-        keyRequestResponse = json.loads(keyRequestResponse.text)
-        key = keyRequestResponse["key"]
-
-        # encrypt email and password
-        emailFieldOutput = cryptocode.encrypt(emailFieldOutput, key)
-        pwFieldOutput = cryptocode.encrypt(pwFieldOutput, key)
-
         # if want to register
         if self.register == 1:
-            self.registerNewUser(emailFieldOutput, pwFieldOutput, key)
+            self.registerNewUser(emailFieldOutput, pwFieldOutput)
             return
 
         try:
@@ -143,7 +125,7 @@ class LogIn(Tk):
         finally:
             print(loginResponse.text)
 
-    def registerNewUser(email, password, key):
+    def registerNewUser(email, password):
         try:
             # request register send encrypted email and password
             response = requests.get(
@@ -157,21 +139,6 @@ class LogIn(Tk):
         switch = 1
         self.withdraw()
         App().mainloop()
-
-    # Encode
-    def encodePW(self, encodeString, key):
-        return cryptocode.encrypt(encodeString, key)
-
-    # Decode
-    def decodePW(self, decodeString, key):
-        output = []
-        output.insert(0, cryptocode.decrypt(decodeString, key))
-
-        if output[0] == "":
-            output.insert(1, False)
-        elif output[0] != "":
-            output.insert(1, True)
-        return output
 
 
 class App(Tk):

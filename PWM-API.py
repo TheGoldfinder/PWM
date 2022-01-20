@@ -1,3 +1,4 @@
+from urllib import request
 from fastapi import FastAPI
 import json
 import time
@@ -38,3 +39,11 @@ def register(email: str, password: str):
     return
 
 
+def callLimiter():
+    global callsPerMinute
+
+    lastClient = request.client
+
+    if callsPerMinute >= maxCallsPerMin:
+        return False
+    callsPerMinute += 1

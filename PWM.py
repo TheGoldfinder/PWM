@@ -119,7 +119,7 @@ class LogIn(Tk):
             return
 
         try:
-            # request login send encrypted email and password
+            # request login send email and password
             loginResponse = requests.get(
                 f"{apiAdress}/login?email={emailFieldOutput}&password={pwFieldOutput}")
         finally:
@@ -136,7 +136,9 @@ class LogIn(Tk):
 
     def switchWindows(self):
         global switch
+
         switch = 1
+
         self.withdraw()
         App().mainloop()
 

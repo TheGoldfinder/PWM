@@ -1,4 +1,3 @@
-from urllib import request
 from fastapi import FastAPI
 import json
 import time
@@ -31,19 +30,68 @@ def home():
 
 @app.get("/login")
 def login(email: str, password: str):
-    return str(email) + " " + str(password)
+    user = getSpecificUser(email)
+    if user == False:
+        return "Error 403 user not found"
+    else:
+        if user["email"] == email and user["password"] == password:
+            return {"login": True}
 
 
-@app.get("/register")
+@app.put("/register")
 def register(email: str, password: str):
     return
 
 
-def callLimiter():
-    global callsPerMinute
+def getUserName(email):
+    addIsReached = False
+    userName = ""
+    for i in email:
+        if i == "@":
+            addIsReached = True
+        if not addIsReached:
+            userName += i
+    return userName
 
-    lastClient = request.client
 
-    if callsPerMinute >= maxCallsPerMin:
-        return False
-    callsPerMinute += 1
+def checkUserExists(email):
+    users = getJsonUsers()
+    userName = getUserName(email)
+
+    if userName in users:
+        return True
+    return False
+
+
+def getJsonUsers():
+    with open("users.json", "r") as file:
+        users = json.loads(file.read())
+    return users
+
+
+def writeJsonUsers(usersDict):
+    with open("users.json", "w") as file:
+        file.write(json.dumps(usersDict))
+    return
+
+
+def addJsonUser(email, password):
+    users = getJsonUsers()
+    userName = getUserName(email)
+    userExists = checkUserExists(email)
+
+    if not userExists:
+        users[userName] = {"email": email, "password": password}
+        writeJsonUsers(users)
+        return True
+    return False
+
+
+def getSpecificUser(email):
+    userName = getUserName(email)
+    users = getJsonUsers()
+    userExists = checkUserExists(email)
+
+    if userExists:
+        return users[userName]
+    return False
